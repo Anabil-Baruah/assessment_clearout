@@ -13,17 +13,17 @@ export async function hit(req, res) {
     const key = { userId, windowStart };
     const col = await usageCollection();
 
-    const incResult = await col.findOneAndUpdate(
+    const incUpdate = await col.updateOne(
       { ...key, count: { $lt: LIMIT_PER_MINUTE } },
-      { $inc: { count: 1 } },
-      { returnDocument: "after" }
+      { $inc: { count: 1 } }
     );
 
-    if (incResult.value) {
+    if (incUpdate.modifiedCount === 1) {
+      const doc = await col.findOne(key);
       return res.status(200).json({
         userId,
         minute: minuteString(windowStart),
-        count: incResult.value.count,
+        count: doc ? doc.count : 1,
         limit: LIMIT_PER_MINUTE,
         status: "ok",
       });
@@ -47,16 +47,16 @@ export async function hit(req, res) {
       });
     } catch (err) {
       if (err && err.code === 11000) {
-        const incResult2 = await col.findOneAndUpdate(
+        const incUpdate2 = await col.updateOne(
           { ...key, count: { $lt: LIMIT_PER_MINUTE } },
-          { $inc: { count: 1 } },
-          { returnDocument: "after" }
+          { $inc: { count: 1 } }
         );
-        if (incResult2.value) {
+        if (incUpdate2.modifiedCount === 1) {
+          const doc2 = await col.findOne(key);
           return res.status(200).json({
             userId,
             minute: minuteString(windowStart),
-            count: incResult2.value.count,
+            count: doc2 ? doc2.count : 1,
             limit: LIMIT_PER_MINUTE,
             status: "ok",
           });
@@ -68,6 +68,7 @@ export async function hit(req, res) {
       throw err;
     }
   } catch (error) {
+    console.error("hit error", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
@@ -90,6 +91,7 @@ export async function usage(req, res) {
       limit: LIMIT_PER_MINUTE,
     });
   } catch (error) {
+    console.error("usage error", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
