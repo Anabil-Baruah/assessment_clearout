@@ -82,8 +82,22 @@
 ## Project Structure
 ```
 .
-├── package.json
-├── README.md
+├── package.json                         — project metadata and dependencies
+├── README.md                            — documentation and usage
+├── .env.example                         — example environment variables
+├── .env                                 — local environment variables
 └── src
-    └── index.js
+    ├── index.js                         — load env, connect DB, ensure indexes, start server
+    ├── app.js                           — Express app setup and route mounting
+    ├── config
+    │   └── db.js                        — MongoDB connect/close and collection access
+    ├── helpers
+    │   ├── constants.js                 — PORT, LIMIT_PER_MINUTE, COLLECTION_NAME
+    │   └── time.js                      — minute truncation and formatting helpers
+    ├── models
+    │   └── usageModel.js                — usage collection and unique index
+    ├── controllers
+    │   └── rateController.js            — handlers: POST /api/hit, GET /api/usage/:userId
+    └── routes
+        └── rateRoutes.js                — route definitions and wiring
 ```
