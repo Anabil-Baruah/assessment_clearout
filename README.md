@@ -86,6 +86,10 @@
 ├── README.md                            — documentation and usage
 ├── .env.example                         — example environment variables
 ├── .env                                 — local environment variables
+├── tests
+│   ├── rateLimiter.basic.test.js        — first hit, limit 5, usage snapshot
+│   ├── rateLimiter.invalid.test.js      — missing userId and invalid JSON cases
+│   └── rateLimiter.concurrent.test.js   — 10 parallel hits → 5 ok, 5 429
 └── src
     ├── index.js                         — load env, connect DB, ensure indexes, start server
     ├── app.js                           — Express app setup and route mounting
@@ -101,3 +105,17 @@
     └── routes
         └── rateRoutes.js                — route definitions and wiring
 ```
+
+## Tests
+- Frameworks: Jest + Supertest
+- Command:
+  ```bash
+  npm test
+  ```
+- Test environment:
+  - Uses `DB_NAME=rate_limiter_test` and clears the usage collection before each test.
+  - Runs against the Express app directly (no external server needed).
+- Test suites:
+  - `tests/rateLimiter.basic.test.js` — first hit count, limit at 5, usage snapshot
+  - `tests/rateLimiter.invalid.test.js` — missing userId handling, invalid JSON handling
+  - `tests/rateLimiter.concurrent.test.js` — 10 parallel hits → 5 succeed, 5 return 429
