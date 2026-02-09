@@ -49,7 +49,30 @@
    npm install
    npm start
    ```
-4. Test via Postman or curl:
+4. Verify startup logs:
+   - `MongoDB connected`
+   - `Service available at http://localhost:3000`
+5. Test via Postman:
+   - Create a Collection (e.g., "Rate Limiter") and set a variable:
+     - `baseUrl = http://localhost:3000`
+   - Request: POST `{{baseUrl}}/api/hit`
+     - Headers: `Content-Type: application/json`
+     - Body → Raw → JSON:
+       ```json
+       { "userId": "user_1" }
+       ```
+     - Expected: `200` with `{ userId, minute, count, limit, status: "ok" }`
+   - Request: GET `{{baseUrl}}/api/usage/user_1`
+     - Expected: `200` with `{ userId, minute, count, limit }`
+   - Rate limit check:
+     - Send the POST request 5 times quickly → all `200`
+     - 6th send → `429` with `{ error: "Rate limit exceeded", limit }`
+   - Minute reset:
+     - Wait for the next minute and send POST again → count resets to `1`
+   - Error cases:
+     - Missing userId in POST body `{}` → `400` `{ error: "userId is required" }`
+     - Invalid JSON `{"userId": user_1}` → `400` `{ error: "Invalid JSON" }`
+6. Test via curl (optional):
    ```bash
    curl -X POST http://localhost:3000/api/hit \
      -H 'Content-Type: application/json' \
